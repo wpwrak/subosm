@@ -30,7 +30,7 @@
 #define	EARTH_R	(6378137/2+6356752/2)	/* meters, (equatorial+polar)/2 */
 
 
-struct node nodes[1000000];
+struct node nodes[MAX_NODES];
 
 
 static GTree *tree;

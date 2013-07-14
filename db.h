@@ -13,14 +13,15 @@
 #define	DB_H
 
 
+#define	MAX_NODES	1000000
+
 struct node {
 	int id;
 	int x, y;	/* coordinates (m) */
 	struct node **ways;
 	int n_ways;
 	int tag;
-} nodes[];
-
+} nodes[MAX_NODES];
 
 unsigned n_nodes;
 

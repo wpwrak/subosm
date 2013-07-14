@@ -47,6 +47,8 @@ static void dump_db(void)
 	for (n = nodes; n != nodes+n_nodes; n++) {
 		if (n->tag)
 			continue;
+		if (!n->n_ways)
+			continue;
 		if (n != nodes)
 			printf("# new net\n\n");
 		recurse(n);
