@@ -1,5 +1,5 @@
 /*
- * db.h - Topology extracted from OSM
+ * db.c - Topology extracted from OSM
  *
  * Written 2013 by Werner Almesberger <werner@almesberger.net>
  *
@@ -10,6 +10,7 @@
  */
 
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -49,17 +50,20 @@ typedef struct handler *(*handler_fn)(void *obj, const char *name,
 
 static struct handler {
 	handler_fn fn;
+	void (*end)(void *obj);
 	void *obj;
 	struct handler *prev;
 } *handler;
 
 
-static struct handler *make_handler(handler_fn fn, void *obj)
+static struct handler *make_handler(handler_fn fn, void (*end)(void *obj),
+    void *obj)
 {
 	struct handler *h;
 
 	h = alloc_type(struct handler);
 	h->fn = fn;
+	h->end = end;
 	h->obj = obj;
 	return h;
 }
@@ -95,6 +99,8 @@ static struct handler *node(const char **attr)
 	double lat, lon;
 	struct node *n;
 
+// dynamic allocation would be cleaner but then we have to recalculate all the
+// "way" pointers. Let's do this later :)
 //	nodes = realloc(nodes, sizeof(struct node) * (n_nodes+1));
 	n = nodes + n_nodes;
 
@@ -110,6 +116,7 @@ static struct handler *node(const char **attr)
 		attr += 2;
 	}
 
+	/* @@@ Buenos Aires (Capital Federal) */
 	if (lon < -58.54)
 		return NULL;
 	if (lon > -58.33)
@@ -124,14 +131,19 @@ static struct handler *node(const char **attr)
 	g_tree_insert(tree, &n->id, n);
 	n_nodes++;
 
-	return make_handler(node_handler, n);
+	return make_handler(node_handler, NULL, n);
 }
 
 
 /* ----- Ways -------------------------------------------------------------- */
 
 
-static struct node *last_node;
+static struct vertex {
+	struct node *node;
+	struct vertex *prev;	/* we reverse the order */
+} *vertices;
+
+static bool keep;
 
 
 static void link_nodes(struct node *a, struct node *b)
@@ -156,10 +168,26 @@ static struct handler *way_handler(void *obj, const char *name,
     const char **attr)
 {
 	struct node *node;
+	struct vertex *v;
 	int ref = 0;
+
+	if (!strcmp(name, "tag")) {
+		if (keep)
+			return NULL;
+		while (*attr) {
+			if (!strcmp(attr[0], "k") &&
+			    !strcmp(attr[1], "highway")) {
+				keep = 1;
+				break;
+			}
+			attr += 2;
+		}
+		return NULL;
+	}
 
 	if (strcmp(name, "nd"))
 		return NULL;
+
 	while (*attr) {
 		if (!strcmp(attr[0], "ref")) {
 			ref = atoi(attr[1]);
@@ -175,21 +203,37 @@ static struct handler *way_handler(void *obj, const char *name,
 		return NULL;
 	}
 
-	if (last_node) {
-		link_nodes(last_node, node);
-		link_nodes(node, last_node);
-	}
-
-	last_node = node;
+	v = alloc_type(struct vertex);
+	v->node = node;
+	v->prev = vertices;
+	vertices = v;
 
 	return NULL;
 }
 
 
+static void end_way(void *obj)
+{
+	struct vertex *v, *prev;
+
+	if (keep)
+		for (v = vertices; v && v->prev; v = v->prev) {
+			link_nodes(v->node, v->prev->node);
+			link_nodes(v->prev->node, v->node);
+		}
+	while (vertices) {
+		prev = vertices->prev;
+		free(vertices);
+		vertices = prev;
+	}
+}
+
+
 static struct handler *way(const char **attr)
 {
-	last_node = NULL;
-	return make_handler(way_handler, NULL);
+	vertices = NULL;
+	keep = 0;
+	return make_handler(way_handler, end_way, NULL);
 }
 
 
@@ -210,7 +254,7 @@ static struct handler *osm_handler(void *obj, const char *name,
 
 static struct handler *osm(const char **attr)
 {
-	return make_handler(osm_handler, NULL);
+	return make_handler(osm_handler, NULL, NULL);
 }
 
 
@@ -239,7 +283,7 @@ static void start(void *user, const char *name, const char **attr)
 
 	next = handler->fn(handler, name, attr);
 	if (!next)
-		next = make_handler(null_handler, NULL);
+		next = make_handler(null_handler, NULL, NULL);
 	next->prev = handler;
 	handler = next;
 }
@@ -249,6 +293,8 @@ static void end(void *user, const char *name)
 {
 	struct handler *prev;
 
+	if (handler->end)
+		handler->end(handler->obj);
 	prev = handler->prev;
 	free(handler);
 	handler = prev;
@@ -287,7 +333,7 @@ void read_osm_xml(const char *name)
 	}
 
 	tree = g_tree_new(node_comp);
-	handler = make_handler(top_handler, NULL);
+	handler = make_handler(top_handler, NULL, NULL);
 
 	XML_Parse(parser, map, st.st_size, XML_TRUE);
 
