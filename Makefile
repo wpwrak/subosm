@@ -16,7 +16,7 @@ MAP_DISTFILE = buenos-aires.osm.bz2
 MAP_DL = http://osm-extracted-metros.s3.amazonaws.com/$(MAP_DISTFILE)
 
 CFLAGS = -Wall -g `pkg-config --cflags glib-2.0`
-LDLIBS = -lexpat `pkg-config --libs glib-2.0`
+LDLIBS = -lexpat `pkg-config --libs glib-2.0` -lm
 
 OBJS = $(NAME).o db.o
 

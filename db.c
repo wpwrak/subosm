@@ -16,16 +16,18 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <math.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
 
 #include <expat.h>
 #include <glib.h>
 
+#include "local.h"
 #include "db.h"
 
 
-#define	SCALE	10000000
+#define	EARTH_R	(6378137/2+6356752/2)	/* meters, (equatorial+polar)/2 */
 
 
 struct node nodes[1000000];
@@ -80,10 +82,20 @@ static int node_comp(gconstpointer a, gconstpointer b)
 }
 
 
+/*
+ * The projection we use preserves distance along meridians and along circles
+ * of latitude.
+ */
+
 static void map_coord(struct node *n, double lat, double lon)
 {
-	n->x = lon*SCALE;
-	n->y = lat*SCALE;
+	double lat_deg_m, lon_deg_m;	/* meters per degree */
+
+	lat_deg_m = EARTH_R/180.0*M_PI;
+	lon_deg_m = EARTH_R/180.0*M_PI*cos(lat/180.0*M_PI);
+
+	n->x = (lon-LON_MIN)*lon_deg_m;
+	n->y = (lat-LAT_MIN)*lat_deg_m;
 }
 
 
@@ -117,13 +129,13 @@ static struct handler *node(const char **attr)
 	}
 
 	/* @@@ Buenos Aires (Capital Federal) */
-	if (lon < -58.54)
+	if (lon < LON_MIN)
 		return NULL;
-	if (lon > -58.33)
+	if (lon > LON_MAX)
 		return NULL;
-	if (lat < -34.71)
+	if (lat < LAT_MIN)
 		return NULL;
-	if (lat > -34.53)
+	if (lat > LAT_MAX)
 		return NULL;
 
 	map_coord(n, lat, lon);
