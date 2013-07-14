@@ -25,15 +25,17 @@
 
 static void recurse(struct node *n)
 {
-	struct node **neigh;
+	struct edge *edge;
 
 	n->tag = 1;
-	for (neigh = n->ways; neigh != n->ways+n->n_ways; neigh++) {
-		if ((*neigh)->tag)
-			continue;
-		printf("%d %d\n%d %d\n\n",
-		    n->x, n->y, (*neigh)->x, (*neigh)->y);
-		recurse(*neigh);
+	for (edge = n->edges; edge != n->edges+n->n_edges; edge++) {
+		if (!edge->tag && edge->n->id > n->id)
+			printf("%d %d # %d\n%d %d # %d\n\n",
+			    n->x, n->y, n->id,
+			    edge->n->x, edge->n->y, edge->n->id);
+		edge->tag = 1;
+		if (!edge->n->tag)
+			recurse(edge->n);
 	}
 }
 
@@ -41,13 +43,17 @@ static void recurse(struct node *n)
 static void dump_db(void)
 {
 	struct node *n;
+	struct edge *e;
 
-	for (n = nodes; n != nodes+n_nodes; n++)
+	for (n = nodes; n != nodes+n_nodes; n++) {
 		n->tag = 0;
+		for (e = n->edges; e != n->edges+n->n_edges; e++)
+			e->tag = 0;
+	}
 	for (n = nodes; n != nodes+n_nodes; n++) {
 		if (n->tag)
 			continue;
-		if (!n->n_ways)
+		if (!n->n_edges)
 			continue;
 		if (n != nodes)
 			printf("# new net\n\n");

@@ -15,11 +15,17 @@
 
 #define	MAX_NODES	1000000
 
+
+struct edge {
+	struct node *n;
+	int tag;
+};
+
 struct node {
 	int id;
 	int x, y;	/* coordinates (m) */
-	struct node **ways;
-	int n_ways;
+	struct edge *edges;
+	int n_edges;
 	int tag;
 } nodes[MAX_NODES];
 

@@ -160,18 +160,18 @@ static bool keep;
 
 static void link_nodes(struct node *a, struct node *b)
 {
-	struct node **n;
+	struct edge *e;
 
-	for (n = a->ways; n != a->ways+a->n_ways; n++)
-		if (*n == b) {
+	for (e = a->edges; e != a->edges+a->n_edges; e++)
+		if (e->n == b) {
 			if (verbose)
 				fprintf(stderr,
 				    "ignoring redundant edge %d -> %d\n",
 				    a->id, b->id);
 			return;
 		}
-	a->ways = realloc(a->ways, sizeof(struct node *) * (a->n_ways + 1));
-	a->ways[a->n_ways++] = b;
+	a->edges = realloc(a->edges, sizeof(struct edge) * (a->n_edges + 1));
+	a->edges[a->n_edges++].n = b;
 	n_edges++;
 }
 
@@ -187,8 +187,13 @@ static struct handler *way_handler(void *obj, const char *name,
 		if (keep)
 			return NULL;
 		while (*attr) {
+#if 0
+			if (!strcmp(attr[0], "v") &&
+			    !strcmp(attr[1], "subway")) {
+#elif 1
 			if (!strcmp(attr[0], "k") &&
 			    !strcmp(attr[1], "highway")) {
+#endif
 				keep = 1;
 				break;
 			}
