@@ -11,6 +11,12 @@
 #
 
 gnuplot --persist <<EOF
-plot "$1" using 1:2:3 with lines palette, \
-  "<sed '/#STATION /s///p;d' out" with points lt 1 pt 7 ps 0.5
+set title "Distance (km) from subway station"
+set size ratio -1
+set palette model RGB
+set palette model RGB defined \
+  (0 "green", 3 "green", 3 "yellow", 6 "yellow", 6 "red", 9.9 "red", \
+   9.9 "grey", 10 "grey")
+plot "$1" using 1:2:(\$3/1000) with lines palette notitle, \
+  "<sed '/#STATION /s///p;d' out" with points lt 3 pt 7 ps 0.3 notitle
 EOF

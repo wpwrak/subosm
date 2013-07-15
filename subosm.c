@@ -83,8 +83,8 @@ static void recurse(struct node *n)
 	for (edge = n->edges; edge != n->edges+n->n_edges; edge++) {
 		if (!edge->tag && edge->n->id > n->id)
 			printf("%d %d %d # %d\n%d %d %d # %d\n\n",
-			    n->x, n->y, -n->distance, n->id,
-			    edge->n->x, edge->n->y, -n->distance, edge->n->id);
+			    n->x, n->y, n->distance, n->id,
+			    edge->n->x, edge->n->y, n->distance, edge->n->id);
 		edge->tag = 1;
 		if (!edge->n->tag)
 			recurse(edge->n);
@@ -113,7 +113,7 @@ static void dump_db(void)
 	for (n = nodes; n != nodes+n_nodes; n++) {
 		if (n->station)
 			printf("#STATION %d %d %d # %d\n",
-			    n->x, n->y, -n->distance, n->id);
+			    n->x, n->y, n->distance, n->id);
 		if (n->tag)
 			continue;
 		if (!n->n_edges)
