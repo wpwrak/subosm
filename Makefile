@@ -13,6 +13,8 @@ NAME = subosm
 
 CITY ?= BUE
 
+CITIES = BUE LON MAD NYC PAR VIE
+
 # OSM data file
 BUE = buenos-aires
 LON = london
@@ -39,6 +41,8 @@ VIE_PLOT =	 6	22	 4.5	18.5	800	600
 
 THUMB_SIZE = 120 120
 
+OUTDIR ?= .
+
 MAP = $($(CITY)).osm
 MAP_DISTFILE = $(MAP).bz2
 MAP_DL = http://osm-extracted-metros.s3.amazonaws.com/$(MAP_DISTFILE)
@@ -49,6 +53,7 @@ LDLIBS = -lexpat `pkg-config --libs glib-2.0` -lm
 OBJS = $(NAME).o db.o
 
 .PHONY:		all run plot clean spotless
+.PHONY:		thumb png forall web
 
 all:		$(NAME)
 
@@ -58,6 +63,13 @@ $(NAME):	$(OBJS)
 clean:
 		rm -f $(OBJS)
 
+forall:
+		for n in $(CITIES); do $(MAKE) CITY=$$n $(CMD); done
+
+web:
+		$(MAKE) OUTDIR=web forall CMD=thumb
+		$(MAKE) OUTDIR=web forall CMD=png
+
 run:		subosm $(MAP)
 		./subosm $(MAP) $($(CITY)_RECT) >$(CITY).gp
 
@@ -65,10 +77,10 @@ plot:
 		./plot $(CITY).gp
 
 png:
-		./plot $(CITY).gp $(CITY).png $($(CITY)_PLOT)
+		./plot $(CITY).gp $(OUTDIR)/$(CITY).png $($(CITY)_PLOT)
 
 thumb:
-		./plot -t $(CITY).gp $(CITY)-thumb.png $(THUMB_SIZE)
+		./plot -t $(CITY).gp $(OUTDIR)/$(CITY)-thumb.png $(THUMB_SIZE)
 
 $(MAP_DISTFILE):
 		wget $(MAP_DL) || { rm -f $@; exit 1; }
