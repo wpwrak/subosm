@@ -17,6 +17,6 @@ set palette model RGB
 set palette model RGB defined \
   (0 "green", 3 "green", 3 "yellow", 6 "yellow", 6 "red", 9.9 "red", \
    9.9 "grey", 10 "grey")
-plot "$1" using 1:2:(\$3/1000) with lines palette notitle, \
-  "<sed '/#STATION /s///p;d' out" with points lt 3 pt 7 ps 0.3 notitle
+plot "$1" using (\$1/1000):(\$2/1000):(\$3/1000) with lines palette notitle, \
+  "<sed '/#STATION /s///p;d' $1" using (\$1/1000):(\$2/1000) with points lt 3 pt 7 ps 0.3 notitle
 EOF
