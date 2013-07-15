@@ -28,6 +28,7 @@ struct node {
 	int id;
 	int x, y;	/* coordinates (m) */
 	bool station;	/* is a subway station */
+	bool proposed;	/* station or line is not yet in operation */
 	int distance;
 	struct edge *edges;
 	int n_edges;

@@ -114,6 +114,9 @@ static struct handler *node_handler(void *obj, const char *name,
 			n->station = 1;
 			break;
 		}
+		if (!strcmp(attr[0], "proposed") ||
+		    !strcmp(attr[1], "proposed"))
+			n->proposed = 1;
 		attr += 2;
 	}
 	return NULL;

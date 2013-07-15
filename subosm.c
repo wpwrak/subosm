@@ -9,6 +9,7 @@
  * (at your option) any later version.
  */
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -19,6 +20,9 @@
 #include <sys/mman.h>
 
 #include "db.h"
+
+
+static bool allow_proposed = 0;
 
 
 /* ----- Distance calculation ---------------------------------------------- */
@@ -62,6 +66,8 @@ static void find_distances(void)
 
 	for (n = nodes; n != nodes+n_nodes; n++) {
 		if (!n->station)
+			continue;
+		if (n->proposed && !allow_proposed)
 			continue;
 		for (m = nodes; m != nodes+n_nodes; m++) {
 			d = hypot(n->x-m->x, n->y-m->y);
@@ -111,7 +117,7 @@ static void dump_db(void)
 
 	reset_tags();
 	for (n = nodes; n != nodes+n_nodes; n++) {
-		if (n->station)
+		if (n->station && (allow_proposed || !n->proposed))
 			printf("#STATION %d %d %d # %d\n",
 			    n->x, n->y, n->distance, n->id);
 		if (n->tag)
@@ -130,6 +136,10 @@ static void dump_db(void)
 
 int main(int argc, char **argv)
 {
+	if (!strcmp(argv[1], "-p")) {
+		allow_proposed = 1;
+		argv++;
+	}
 	fprintf(stderr, "reading %s\n", argv[1]);
 	read_osm_xml(argv[1]);
 	fprintf(stderr, "calculating distances\n");
