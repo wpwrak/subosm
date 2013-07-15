@@ -34,7 +34,8 @@ run:		subosm $(MAP)
 		./subosm buenos-aires.osm >out
 
 plot:
-		gnuplot --persist -e 'plot "out" with lines'
+		gnuplot --persist \
+   -e 'plot "out" with lines lt 7, "<grep STATION out" with points lt 1 pt 7'
 
 $(MAP_DISTFILE):
 		wget $(MAP_DL) || { rm -f $@; exit 1; }

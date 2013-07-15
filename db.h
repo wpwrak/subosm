@@ -12,6 +12,8 @@
 #ifndef DB_H
 #define	DB_H
 
+#include <stdbool.h>
+
 
 #define	MAX_NODES	1000000
 
@@ -24,6 +26,7 @@ struct edge {
 struct node {
 	int id;
 	int x, y;	/* coordinates (m) */
+	bool station;	/* is a subway station */
 	struct edge *edges;
 	int n_edges;
 	int tag;

@@ -102,6 +102,20 @@ static void map_coord(struct node *n, double lat, double lon)
 static struct handler *node_handler(void *obj, const char *name,
     const char **attr)
 {
+	struct node *n = obj;
+
+	if (n->station)
+		return NULL;
+	if (strcmp(name, "tag"))
+		return NULL;
+
+	while (*attr) {
+		if (!strcmp(attr[0], "v") && !strcmp(attr[1], "subway")) {
+			n->station = 1;
+			break;
+		}
+		attr += 2;
+	}
 	return NULL;
 }
 
@@ -128,7 +142,6 @@ static struct handler *node(const char **attr)
 		attr += 2;
 	}
 
-	/* @@@ Buenos Aires (Capital Federal) */
 	if (lon < LON_MIN)
 		return NULL;
 	if (lon > LON_MAX)
@@ -298,7 +311,7 @@ static void start(void *user, const char *name, const char **attr)
 {
 	struct handler *next;
 
-	next = handler->fn(handler, name, attr);
+	next = handler->fn(handler->obj, name, attr);
 	if (!next)
 		next = make_handler(null_handler, NULL, NULL);
 	next->prev = handler;
