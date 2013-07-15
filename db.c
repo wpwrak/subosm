@@ -11,14 +11,13 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include <fcntl.h>
 #include <math.h>
 #include <sys/stat.h>
-#include <sys/mman.h>
 
 #include <expat.h>
 #include <glib.h>
@@ -342,35 +341,40 @@ static void end(void *user, const char *name)
 
 void read_osm_xml(const char *name)
 {
-	int fd;
+	FILE *file;
 	struct stat st;
+	char buf[1000*1000];
+	size_t got;
+	uint64_t sum = 0;
 	XML_Parser parser;
-	void *map;
 
 	parser = XML_ParserCreate(NULL);
 	XML_SetElementHandler(parser, start, end);
 
-	fd = open(name, O_RDONLY);
-	if (fd < 0) {
+	file = fopen(name, "r");
+	if (!file) {
 		perror(name);
 		exit(1);
 	}
 
-	if (fstat(fd, &st) < 0) {
+	if (fstat(fileno(file), &st) < 0) {
 		perror("fstat");
-		exit(1);
-	}
-
-	map = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
-	if (map == (void *) -1) {
-		perror("mmap");
 		exit(1);
 	}
 
 	tree = g_tree_new(node_comp);
 	handler = make_handler(top_handler, NULL, NULL);
 
-	XML_Parse(parser, map, st.st_size, XML_TRUE);
+	while (1) {
+		got = fread(buf, 1, sizeof(buf), file);
+		if (!got)
+			break;
+		XML_Parse(parser, buf, got, XML_FALSE);
+		sum += got;
+		fprintf(stderr, "%.1f%%\r", sum*100.0/st.st_size);
+	}
+
+	XML_Parse(parser, "", 0, XML_FALSE);
 
 	fprintf(stderr, "%u nodes %u edges\n", n_nodes, n_edges);
 }
