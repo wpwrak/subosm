@@ -12,5 +12,5 @@
 
 gnuplot --persist <<EOF
 plot "$1" using 1:2:3 with lines palette, \
-  "<sed '/#STATION /s///p;d' out" with points lt 1 pt 7
+  "<sed '/#STATION /s///p;d' out" with points lt 1 pt 7 ps 0.5
 EOF

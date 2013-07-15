@@ -24,7 +24,8 @@
 /* ----- Distance calculation ---------------------------------------------- */
 
 
-#define	UNREACHABLE	5000		/* 5 km out */
+#define	UNREACHABLE	1000		/* 1 km out */
+#define	NEAR		80		/* station "capture" radius, 50 m */
 
 
 static void route(struct node *n, int d)
@@ -56,13 +57,18 @@ static void prepare_routing(void)
 
 static void find_distances(void)
 {
-	struct node *n;
+	struct node *n, *m;
+	int d;
 
-	prepare_routing();
-	for (n = nodes; n != nodes+n_nodes; n++)
-		if (n->station) {
-			route(n, 0);
+	for (n = nodes; n != nodes+n_nodes; n++) {
+		if (!n->station)
+			continue;
+		for (m = nodes; m != nodes+n_nodes; m++) {
+			d = hypot(n->x-m->x, n->y-m->y);
+			if (d <= NEAR && d < m->distance)
+				route(m, d);
 		}
+	}
 }
 
 
@@ -106,7 +112,7 @@ static void dump_db(void)
 	reset_tags();
 	for (n = nodes; n != nodes+n_nodes; n++) {
 		if (n->station)
-			printf("#STATION %d %d %d #%d\n\n",
+			printf("#STATION %d %d %d # %d\n",
 			    n->x, n->y, -n->distance, n->id);
 		if (n->tag)
 			continue;
@@ -124,8 +130,13 @@ static void dump_db(void)
 
 int main(int argc, char **argv)
 {
+	fprintf(stderr, "reading %s\n", argv[1]);
 	read_osm_xml(argv[1]);
+	fprintf(stderr, "calculating distances\n");
+	prepare_routing();
+	fprintf(stderr, "routing\n");
 	find_distances();
+	fprintf(stderr, "writing output\n");
 	dump_db();
 	return 0;
 }
