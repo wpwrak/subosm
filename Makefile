@@ -26,8 +26,16 @@ BUE_RECT =	-58.54 -58.33	-34.71 -34.53
 LON_RECT =	 -0.51   0.33	 51.29  51.70
 MAD_RECT =	 -3.84  -3.52	 40.30  40.56
 NYC_RECT =	-74.04 -73.70	 40.54  40.92
-PAR_RECT =	  2.22   2.43	 48.81  48.91
+PAR_RECT =	  2.22   2.46	 48.80  48.92
 VIE_RECT =	 16.18  16.58	 48.11  48.32
+
+# city		xrange		yrange		pixels
+BUE_PLOT = 	 0.5	18	 0	19.5	700	600
+LON_PLOT = 	18.5	34	21	32	800 	500
+MAD_PLOT =	 4.6	21.9	 6.1	22	650	650
+NYC_PLOT =	 0	10.7	12.7	30.3	550	800
+PAR_PLOT =	 0	17.5	 0	13.3	800	600
+VIE_PLOT =	 6	22	 4.5	18.5	800	600
 
 MAP = $($(CITY)).osm
 MAP_DISTFILE = $(MAP).bz2
@@ -53,6 +61,9 @@ run:		subosm $(MAP)
 
 plot:
 		./plot $(CITY).gp
+
+png:
+		./plot $(CITY).gp $(CITY).png $($(CITY)_PLOT)
 
 $(MAP_DISTFILE):
 		wget $(MAP_DL) || { rm -f $@; exit 1; }
