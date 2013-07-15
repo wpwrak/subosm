@@ -11,7 +11,24 @@
 #
 
 (
-if [ "$2" ]; then
+cat <<EOF
+set title "Distance (km) from subway station"
+EOF
+if [ "$1" = -t ]; then
+    shift
+    cat <<EOF
+set term pngcairo linewidth 0.2 size $3, $4
+set output "$2"
+set notitle
+unset tics
+unset border
+unset colorbox
+set lmargin 0
+set rmargin 0
+set tmargin 0
+set bmargin 0
+EOF
+elif [ "$2" ]; then
     cat <<EOF
 set term pngcairo size $7, $8
 set output "$2"
@@ -21,7 +38,6 @@ EOF
 fi
 
 cat <<EOF
-set title "Distance (km) from subway station"
 set size ratio -1
 set palette model RGB
 set palette model RGB defined \

@@ -37,6 +37,8 @@ NYC_PLOT =	 0	10.7	12.7	30.3	550	800
 PAR_PLOT =	 0	17.5	 0	13.3	800	600
 VIE_PLOT =	 6	22	 4.5	18.5	800	600
 
+THUMB_SIZE = 120 120
+
 MAP = $($(CITY)).osm
 MAP_DISTFILE = $(MAP).bz2
 MAP_DL = http://osm-extracted-metros.s3.amazonaws.com/$(MAP_DISTFILE)
@@ -64,6 +66,9 @@ plot:
 
 png:
 		./plot $(CITY).gp $(CITY).png $($(CITY)_PLOT)
+
+thumb:
+		./plot -t $(CITY).gp $(CITY)-thumb.png $(THUMB_SIZE)
 
 $(MAP_DISTFILE):
 		wget $(MAP_DL) || { rm -f $@; exit 1; }
