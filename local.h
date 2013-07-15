@@ -12,12 +12,6 @@
 #ifndef LOCAL_H
 #define	LOCAL_H
 
-/* Buenos Aires (Capital Federal) */
-
-#define	LON_MIN	-58.54
-#define	LON_MAX	-58.33
-
-#define	LAT_MIN	-34.71
-#define	LAT_MAX	-34.53
+double lon_min, lon_max, lat_min, lat_max;
 
 #endif /* LOCAL_H */

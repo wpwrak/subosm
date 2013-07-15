@@ -15,6 +15,9 @@ MAP = buenos-aires.osm
 MAP_DISTFILE = buenos-aires.osm.bz2
 MAP_DL = http://osm-extracted-metros.s3.amazonaws.com/$(MAP_DISTFILE)
 
+#			longitude	latitude
+BUE = buenos-aires.osm	-58.54 -58.33	-34.71 -34.53
+
 CFLAGS = -Wall -g `pkg-config --cflags glib-2.0`
 LDLIBS = -lexpat `pkg-config --libs glib-2.0` -lm
 
@@ -31,7 +34,7 @@ clean:
 		rm -f $(OBJS)
 
 run:		subosm $(MAP)
-		./subosm buenos-aires.osm >out
+		./subosm $(BUE) >out
 
 plot:
 		./plot out

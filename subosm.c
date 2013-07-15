@@ -19,6 +19,7 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 
+#include "local.h"
 #include "db.h"
 
 
@@ -140,8 +141,15 @@ int main(int argc, char **argv)
 		allow_proposed = 1;
 		argv++;
 	}
+
+	lon_min = atof(argv[2]);
+	lon_max = atof(argv[3]);
+	lat_min = atof(argv[4]);
+	lat_max = atof(argv[5]);
+
 	fprintf(stderr, "reading %s\n", argv[1]);
 	read_osm_xml(argv[1]);
+
 	fprintf(stderr, "calculating distances\n");
 	prepare_routing();
 	fprintf(stderr, "routing\n");

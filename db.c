@@ -94,8 +94,8 @@ static void map_coord(struct node *n, double lat, double lon)
 	lat_deg_m = EARTH_R/180.0*M_PI;
 	lon_deg_m = EARTH_R/180.0*M_PI*cos(lat/180.0*M_PI);
 
-	n->x = (lon-LON_MIN)*lon_deg_m;
-	n->y = (lat-LAT_MIN)*lat_deg_m;
+	n->x = (lon-lon_min)*lon_deg_m;
+	n->y = (lat-lat_min)*lat_deg_m;
 }
 
 
@@ -125,7 +125,7 @@ static struct handler *node_handler(void *obj, const char *name,
 
 static struct handler *node(const char **attr)
 {
-	double lat, lon;
+	double lat = 0, lon = 0;
 	struct node *n;
 
 // dynamic allocation would be cleaner but then we have to recalculate all the
@@ -145,13 +145,13 @@ static struct handler *node(const char **attr)
 		attr += 2;
 	}
 
-	if (lon < LON_MIN)
+	if (lon < lon_min)
 		return NULL;
-	if (lon > LON_MAX)
+	if (lon > lon_max)
 		return NULL;
-	if (lat < LAT_MIN)
+	if (lat < lat_min)
 		return NULL;
-	if (lat > LAT_MAX)
+	if (lat > lat_max)
 		return NULL;
 
 	map_coord(n, lat, lon);
