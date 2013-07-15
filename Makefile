@@ -11,12 +11,14 @@
 
 NAME = subosm
 
-MAP = buenos-aires.osm
-MAP_DISTFILE = buenos-aires.osm.bz2
-MAP_DL = http://osm-extracted-metros.s3.amazonaws.com/$(MAP_DISTFILE)
+CITY ?= BUE
 
-#			longitude	latitude
-BUE = buenos-aires.osm	-58.54 -58.33	-34.71 -34.53
+# city			longitude	latitude
+BUE = buenos-aires	-58.54 -58.33	-34.71 -34.53
+
+MAP = $(word 1, $($(CITY))).osm
+MAP_DISTFILE = $(MAP).bz2
+MAP_DL = http://osm-extracted-metros.s3.amazonaws.com/$(MAP_DISTFILE)
 
 CFLAGS = -Wall -g `pkg-config --cflags glib-2.0`
 LDLIBS = -lexpat `pkg-config --libs glib-2.0` -lm
@@ -34,10 +36,10 @@ clean:
 		rm -f $(OBJS)
 
 run:		subosm $(MAP)
-		./subosm $(BUE) >out
+		./subosm $(MAP) $(wordlist 2,9,$($(CITY))) >$(CITY).gp
 
 plot:
-		./plot out
+		./plot $(CITY).gp
 
 $(MAP_DISTFILE):
 		wget $(MAP_DL) || { rm -f $@; exit 1; }
