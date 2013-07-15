@@ -172,7 +172,8 @@ static struct vertex {
 	struct vertex *prev;	/* we reverse the order */
 } *vertices;
 
-static bool keep;
+static bool keep;	/* keep in the street database */
+static bool subway;	/* the "way" is a subway entrance/station */
 
 
 static void link_nodes(struct node *a, struct node *b)
@@ -213,6 +214,10 @@ static struct handler *way_handler(void *obj, const char *name,
 #endif
 				keep = 1;
 				break;
+			}
+			if (!strcmp(attr[0], "v") &&
+			    !strcmp(attr[1], "subway_entrance")) {
+				subway = 1;
 			}
 			attr += 2;
 		}
@@ -256,6 +261,8 @@ static void end_way(void *obj)
 			link_nodes(v->prev->node, v->node);
 		}
 	while (vertices) {
+		if (subway)
+			vertices->node->station = 1;
 		prev = vertices->prev;
 		free(vertices);
 		vertices = prev;
@@ -267,6 +274,7 @@ static struct handler *way(const char **attr)
 {
 	vertices = NULL;
 	keep = 0;
+	subway = 0;
 	return make_handler(way_handler, end_way, NULL);
 }
 
