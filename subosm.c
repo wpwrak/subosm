@@ -60,12 +60,33 @@ static void prepare_routing(void)
 }
 
 
+static unsigned count_routes(void)
+{
+	unsigned routes = 0;
+
+	struct node *n;
+
+	for (n = nodes; n != nodes+n_nodes; n++) {
+		if (!n->station)
+			continue;
+		if (n->proposed && !allow_proposed)
+			continue;
+		routes++;
+	}
+	return routes;
+}
+
+
 static void find_distances(void)
 {
 	struct node *n, *m;
+	unsigned done = 0, routes;
 	int d;
 
+	routes = count_routes();
 	for (n = nodes; n != nodes+n_nodes; n++) {
+		fprintf(stderr, "%u/%u\r", done, routes);
+		fflush(stderr);
 		if (!n->station)
 			continue;
 		if (n->proposed && !allow_proposed)
@@ -75,6 +96,7 @@ static void find_distances(void)
 			if (d <= NEAR && d < m->distance)
 				route(m, d);
 		}
+		done++;
 	}
 }
 
