@@ -20,6 +20,7 @@
 
 struct edge {
 	struct node *n;
+	int len;
 	int tag;
 };
 
@@ -27,6 +28,7 @@ struct node {
 	int id;
 	int x, y;	/* coordinates (m) */
 	bool station;	/* is a subway station */
+	int distance;
 	struct edge *edges;
 	int n_edges;
 	int tag;
