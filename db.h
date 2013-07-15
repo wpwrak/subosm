@@ -15,7 +15,7 @@
 #include <stdbool.h>
 
 
-#define	MAX_NODES	1000000
+#define	MAX_NODES	10000000	/* 10 M, big enough for London */
 
 
 struct edge {

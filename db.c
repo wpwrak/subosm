@@ -110,7 +110,9 @@ static struct handler *node_handler(void *obj, const char *name,
 		return NULL;
 
 	while (*attr) {
-		if (!strcmp(attr[0], "v") && !strcmp(attr[1], "subway")) {
+		if (!strcmp(attr[0], "v") &&
+		    (!strcmp(attr[1], "subway") ||
+		    !strcmp(attr[1], "subway_entrance"))) {
 			n->station = 1;
 			break;
 		}

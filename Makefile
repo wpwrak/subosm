@@ -15,6 +15,11 @@ CITY ?= BUE
 
 # city			longitude	latitude
 BUE = buenos-aires	-58.54 -58.33	-34.71 -34.53
+LON = london		 -0.51   0.33	 51.29  51.70
+MAD = madrid		 -3.84  -3.52	 40.30  40.56
+NYC = new-york		-74.04 -73.70	 40.54  40.92
+AR = paris		  2.22   2.43	 48.81  48.90
+VIE = vienna		 16.18  16.58	 48.11  48.32
 
 MAP = $(word 1, $($(CITY))).osm
 MAP_DISTFILE = $(MAP).bz2
