@@ -32,7 +32,7 @@ PAR_RECT =	  2.22   2.46	 48.80  48.92
 VIE_RECT =	 16.18  16.58	 48.11  48.32
 
 # city		xrange		yrange		pixels
-BUE_PLOT = 	 0.5	18	 0	19.5	700	600
+BUE_PLOT = 	 0.5	18	 4	19.5	700	500
 LON_PLOT = 	18.5	34	21	32	800 	500
 MAD_PLOT =	 4.6	21.9	 6.1	22	650	650
 NYC_PLOT =	 0	10.7	12.7	30.3	550	800
@@ -53,7 +53,7 @@ LDLIBS = -lexpat `pkg-config --libs glib-2.0` -lm
 OBJS = $(NAME).o db.o
 
 .PHONY:		all run plot clean spotless
-.PHONY:		thumb png forall web
+.PHONY:		thumb png forall web cp-gp
 
 all:		$(NAME)
 
@@ -67,8 +67,9 @@ forall:
 		for n in $(CITIES); do $(MAKE) CITY=$$n $(CMD); done
 
 web:
-		$(MAKE) OUTDIR=web forall CMD=thumb
-		$(MAKE) OUTDIR=web forall CMD=png
+		$(MAKE) OUTDIR=subosm-data forall CMD=thumb
+		$(MAKE) OUTDIR=subosm-data forall CMD=png
+		$(MAKE) OUTDIR=subosm-data forall CMD=cp-gp
 
 run:		subosm $(MAP)
 		./subosm $(MAP) $($(CITY)_RECT) >$(CITY).gp
@@ -81,6 +82,9 @@ png:
 
 thumb:
 		./plot -t $(CITY).gp $(OUTDIR)/$(CITY)-thumb.png $(THUMB_SIZE)
+
+cp-gp:
+		bzip2 -9 <$(CITY).gp >$(OUTDIR)/$(CITY).gp.bz2
 
 $(MAP_DISTFILE):
 		wget $(MAP_DL) || { rm -f $@; exit 1; }
