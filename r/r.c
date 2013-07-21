@@ -17,6 +17,14 @@
 #define	STATION_R 1
 
 
+enum class {
+	good,
+	average,
+	bad,
+	remote
+};
+
+
 /* ----- Database ---------------------------------------------------------- */
 
 
@@ -226,28 +234,121 @@ static inline int Y(int y)
 }
 
 
-static uint32_t classify(int d)
+static enum class classify(int d)
 {
 	if (d <= 333)
-		return GOOD;
+		return good;
 	if (d <= 666)
-		return AVERAGE;
+		return average;
 	if (d < 1000)
-		return BAD;
-	return REMOTE;
+		return bad;
+	return remote;
 }
 
 
-static uint32_t mix3(uint32_t a, uint32_t b, uint32_t c)
+static double split_at(int at, int a, int b)
 {
-	uint8_t r, g, bl, alpha;
+	return (double) (at-a)/(b-a);
+}
 
-	r = ((a >> 24)+(b >> 24)+(c >> 24))/3;
-	g = (((a & 0xff0000) >> 16)+((b & 0xff0000) >> 16)+
-	    ((c & 0xff0000) >> 16))/3;
-	bl = (((a & 0xff00) >> 8)+((b & 0xff00) >> 8)+((c & 0xff00) >> 8))/3;
-	alpha = ((a & 0xff)+(b & 0xff)+(c & 0xff))/3;
-	return r << 24 | g << 16 | bl << 8 | alpha;
+
+static double split(int a, int b)
+{
+	enum class ca, cb;
+
+	ca = classify(a);
+	cb = classify(b);
+
+	if (ca == cb)
+		return 0.5;
+	if (ca > cb)
+		return 1.0-split(b, a);
+
+	switch (ca) {
+	case good:
+		switch (cb) {
+		case average:
+			return split_at(333, a, b);
+		case bad:
+			return split_at(500, a, b);
+		case remote:
+			return split_at(999, a, b);
+		default:
+			abort();
+		}
+	case average:
+		switch (cb) {
+		case bad:
+			return split_at(666, a, b);
+		case remote:
+			return split_at(999, a, b);
+		default:
+			abort();
+		}
+	case bad:
+		switch (cb) {
+		case remote:
+			return split_at(1000, a, b);
+		default:
+			abort();
+		}
+	default:
+		abort();
+	}
+}
+
+
+static void corner(SDL_Surface *s, int ax, int ay, int bx, int by,
+    int cx, int cy, int mx, int my, uint32_t color)
+{
+	filledTrigonColor(s, X(ax), Y(ay), X(bx), Y(by), X(cx), Y(cy), color);
+	filledTrigonColor(s, X(mx), Y(my), X(bx), Y(by), X(cx), Y(cy), color);
+}
+
+
+static void paint_triangle(SDL_Surface *s, const struct node *a,
+    const struct node *b, const struct node *c)
+{
+	static const uint32_t color[] = {
+		[good]		= GOOD,
+		[average]	= AVERAGE,
+		[bad]		= BAD,
+		[remote]	= REMOTE
+	};
+	uint32_t ca, cb, cc;
+	double wab, wac, wbc;
+	int mabx, maby, macx, macy, mbcx, mbcy;
+	int mx, my;
+
+	/* colors of corners */
+
+	ca = color[classify(a->d)];
+	cb = color[classify(b->d)];
+	cc = color[classify(c->d)];
+
+	/* find where on a side the border is */
+
+	wab = split(a->d, b->d);
+	wac = split(a->d, c->d);
+	wbc = split(b->d, c->d);
+
+	/* border points on sides */
+
+	mabx = wab*a->x+(1-wab)*b->x;
+	maby = wab*a->y+(1-wab)*b->y;
+	macx = wac*a->x+(1-wac)*c->x;
+	macy = wac*a->y+(1-wac)*c->y;
+	mbcx = wbc*b->x+(1-wbc)*c->x;
+	mbcy = wbc*b->y+(1-wbc)*c->y;
+
+	/* centroid of the triangle formed by the border points */
+
+	mx = (mabx+macx+mbcx)/3;
+	my = (maby+macy+mbcy)/3;
+
+	corner(s, a->x, a->y, mabx, maby, macx, macy, mx, my, ca);
+	corner(s, b->x, b->y, mabx, maby, mbcx, mbcy, mx, my, cb);
+	corner(s, c->x, c->y, macx, macy, mbcx, mbcy, mx, my, cc);
 }
 
 
@@ -255,15 +356,12 @@ static void paint_triangles(SDL_Surface *s)
 {
 	unsigned i;
 	const struct node *a, *b, *c;
-	uint32_t mix;
 
 	for (i = 0; i != n_faces; i++) {
 		a = node+face[i].a;
 		b = node+face[i].b;
 		c = node+face[i].c;
-		mix = mix3(classify(a->d), classify(b->d), classify(c->d));
-		filledTrigonColor(s, X(a->x), Y(a->y), X(b->x), Y(b->y),
-		    X(c->x), Y(c->y), mix);
+		paint_triangle(s, a, b, c);
 	}
 }
 
@@ -295,7 +393,7 @@ static void do_gfx(void)
 {
 	SDL_Surface *s;
 
-	s = make_canvas(600);
+	s = make_canvas(2*600);
 	paint_triangles(s);
 	draw_net(s);
 	draw_stations(s);
