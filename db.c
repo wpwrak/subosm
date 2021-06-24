@@ -1,7 +1,7 @@
 /*
  * db.c - Topology extracted from OSM
  *
- * Written 2013 by Werner Almesberger <werner@almesberger.net>
+ * Written 2013, 2021 by Werner Almesberger <werner@almesberger.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 
 struct node nodes[MAX_NODES];
-
+unsigned n_nodes;
 
 static GTree *tree;
 static unsigned n_edges;

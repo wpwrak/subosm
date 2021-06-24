@@ -1,7 +1,7 @@
 /*
  * subosm.c - Obtain useful data about the Buenos Aires Subte from OSM
  *
- * Written 2013 by Werner Almesberger <werner@almesberger.net>
+ * Written 2013, 2021 by Werner Almesberger <werner@almesberger.net>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,8 @@
 #include "local.h"
 #include "db.h"
 
+
+double lon_min, lon_max, lat_min, lat_max;
 
 static bool allow_proposed = 0;
 

@@ -33,9 +33,11 @@ struct node {
 	struct edge *edges;
 	int n_edges;
 	int tag;
-} nodes[MAX_NODES];
+};
 
-unsigned n_nodes;
+
+extern struct node nodes[MAX_NODES];
+extern unsigned n_nodes;
 
 
 void read_osm_xml(const char *name);
